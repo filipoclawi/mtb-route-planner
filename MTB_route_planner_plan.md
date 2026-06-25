@@ -49,5 +49,11 @@ Densify stitched route, call geo.admin.ch profile API in chunks, compute smoothe
 ### Chunk 5 — publishing
 Local-only by default; add explicit publish target with privacy/redaction checks.
 
+## Public POC viewer
+
+- Live URL: https://filipoclawi.github.io/mtb-route-planner/
+- GitHub repo: https://github.com/filipoclawi/mtb-route-planner
+- Deployment verified in browser: heading/table/map loaded, and no console errors.
+
 ## Current blocker / environment note
 `http://localhost:8989/info` is currently connection-refused, so the first live GraphHopper integration cannot be exercised until the local GraphHopper Switzerland server is running. Java is not installed on this machine (`java: command not found`), so GraphHopper setup needs either a local JRE under `~/.hermes/` or a user-approved system Java install. The Switzerland PBF is reachable from Geofabrik and is about 512 MB. The code path is tested with a real local HTTP stub that mimics GraphHopper's `/route` response.
