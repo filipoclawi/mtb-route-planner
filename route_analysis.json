@@ -1,14 +1,14 @@
 {
   "route_name": "POC Alp Clünas access route",
-  "total_distance_m": 28202.893600689884,
-  "point_count": 3128,
+  "total_distance_m": 28342.120915987256,
+  "point_count": 3147,
   "sections": [
     {
       "id": "connector_001",
       "type": "graphhopper_connector",
       "name": "Start → trail start",
-      "distance_m": 216.16222965809084,
-      "point_count": 3,
+      "distance_m": 352.54416104484403,
+      "point_count": 21,
       "source": "GraphHopper"
     },
     {
@@ -22,12 +22,12 @@
   ],
   "warnings": [],
   "outputs": {
-    "run_dir": "/home/filipo/.hermes/workspace/mtb-route-planner/runs/poc_stub",
-    "gpx_path": "/home/filipo/.hermes/workspace/mtb-route-planner/runs/poc_stub/outputs/unified_route.gpx",
-    "geojson_path": "/home/filipo/.hermes/workspace/mtb-route-planner/runs/poc_stub/outputs/unified_route.geojson",
-    "analysis_path": "/home/filipo/.hermes/workspace/mtb-route-planner/runs/poc_stub/outputs/route_analysis.json",
-    "viewer_data_path": "/home/filipo/.hermes/workspace/mtb-route-planner/runs/poc_stub/outputs/viewer_data.json",
-    "viewer_html_path": "/home/filipo/.hermes/workspace/mtb-route-planner/runs/poc_stub/outputs/viewer.html",
-    "summary_path": "/home/filipo/.hermes/workspace/mtb-route-planner/runs/poc_stub/outputs/route_summary.md"
+    "run_dir": "runs/real_graphhopper_poc",
+    "gpx_path": "runs/real_graphhopper_poc/outputs/unified_route.gpx",
+    "geojson_path": "runs/real_graphhopper_poc/outputs/unified_route.geojson",
+    "analysis_path": "runs/real_graphhopper_poc/outputs/route_analysis.json",
+    "viewer_data_path": "runs/real_graphhopper_poc/outputs/viewer_data.json",
+    "viewer_html_path": "runs/real_graphhopper_poc/outputs/viewer.html",
+    "summary_path": "runs/real_graphhopper_poc/outputs/route_summary.md"
   }
 }
