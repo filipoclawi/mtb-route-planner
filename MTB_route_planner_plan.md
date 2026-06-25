@@ -20,9 +20,10 @@ Build a local Hermes-facing MTB route-builder service that starts with a minimal
 - [x] Publish the current POC viewer through GitHub Pages for user review.
 - [x] Connect to a real local GraphHopper Switzerland server at `http://localhost:8989`.
 - [x] Rerun the current POC against real GraphHopper and publish updated viewer.
-- [ ] Add Trailforks browser/download ingestion. **Paused until Armin approves continuing beyond GraphHopper setup.**
-- [ ] Add Swisstopo/geo.admin.ch elevation enrichment. **Paused until Armin approves continuing beyond GraphHopper setup.**
-- [ ] Add gradient analysis and section-level metrics. **Paused until Armin approves continuing beyond GraphHopper setup.**
+- [ ] Add Trailforks browser/download ingestion. **Paused until Armin approves continuing beyond Swisstopo/gradient slice.**
+- [x] Add Swisstopo/geo.admin.ch elevation enrichment.
+- [x] Add gradient analysis and section-level metrics.
+- [x] Update viewer with elevation and 50 m smoothed gradient charts.
 - [ ] Add optional public static publishing automation beyond this one-off POC deployment. **Paused.**
 
 ## Vertical chunks
@@ -45,7 +46,7 @@ Install/import Switzerland graph, verify `/info`, available profiles and details
 Use logged-in browser cookies/session to download official GPX into `runs/<run>/source_trails/`; cache by URL.
 
 ### Chunk 4 — Swisstopo elevation + gradients
-Densify stitched route, call geo.admin.ch profile API in chunks, compute smoothed gradients, update viewer.
+Densify stitched route, call geo.admin.ch profile API, compute raw plus 20/50/100 m smoothed gradients, update viewer. Implemented for the current POC route with a single request below the 5,000-coordinate profile API limit; chunking remains a future hardening task for longer routes.
 
 ### Chunk 5 — publishing
 Local-only by default; add explicit publish target with privacy/redaction checks.
@@ -55,6 +56,7 @@ Local-only by default; add explicit publish target with privacy/redaction checks
 - Live URL: https://filipoclawi.github.io/mtb-route-planner/
 - GitHub repo: https://github.com/filipoclawi/mtb-route-planner
 - Deployment verified in browser: heading/table/map loaded, and no console errors.
+- Current deployment includes Swisstopo elevation, 50 m smoothed gradient chart, section gain/loss table, and synchronized chart hover/map marker.
 
 ## GraphHopper local setup
 
@@ -87,5 +89,36 @@ Real GraphHopper POC run:
 - Trail GPX: 27.99 km, 3126 points.
 - Published viewer updated with this real-GraphHopper result.
 
+## Swisstopo elevation + gradient slice
+
+Implemented and verified:
+
+- Swisstopo client: `mtb_route_builder/swisstopo_profile.py`.
+- LV95 conversion and densification: `mtb_route_builder/geo.py`.
+- Gradient metrics: `mtb_route_builder/gradients.py`.
+- Viewer: elevation chart, 50 m smoothed gradient chart, section gain/loss and steepness table.
+- Raw geo.admin.ch response saved per run at `swisstopo/elevation_profile_raw.json`.
+- Enriched GPX and GeoJSON write Swisstopo-derived elevations.
+
+POC run:
+
+- Run dir: `/home/filipo/.hermes/workspace/mtb-route-planner/runs/swisstopo_gradient_poc`.
+- Swisstopo profile samples: 2,836.
+- Elevation model used: DTM2 for all samples.
+- Total Swisstopo gain/loss: about 1,020 m / 1,933 m.
+- Altitude range: 1,173–2,512 m.
+- Steepest 50 m smoothed gradient: +25.0% / -54.6%.
+- Local and deployed viewers verified with no browser console errors.
+
+Verification commands:
+
+```bash
+cd /home/filipo/.hermes/workspace/mtb-route-planner
+python3 -m compileall -q mtb_route_builder tests
+python3 -m pytest -q
+python3 -m mtb_route_builder.cli build --request examples/local_gpx_request.yaml --out runs/swisstopo_gradient_poc --graphhopper-url http://127.0.0.1:8989
+python3 -m mtb_route_builder.cli inspect --run-dir runs/swisstopo_gradient_poc
+```
+
 ## Current status / next pause point
-GraphHopper Switzerland local routing is installed, running, and verified. The next implementation slices — Trailforks browser download, Swisstopo elevation enrichment, gradient analysis, and richer synced viewer — are intentionally paused until Armin explicitly approves continuing beyond this GraphHopper setup.
+GraphHopper Switzerland local routing, Swisstopo elevation enrichment, gradient analysis, and the richer static viewer are implemented and verified. The next implementation slice — Trailforks browser/download ingestion — remains paused until Armin explicitly approves continuing.
