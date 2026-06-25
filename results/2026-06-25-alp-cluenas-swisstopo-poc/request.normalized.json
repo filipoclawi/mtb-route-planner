@@ -1,0 +1,15 @@
+{
+  "name": "POC Alp Clünas access route",
+  "graphhopper_url": "http://127.0.0.1:8989",
+  "profile": "mtb",
+  "local_trails": [
+    {
+      "id": "alp_cluenas",
+      "path": "/home/filipo/.hermes/exports/mtb-gpx/alp-cluenas-val-tasna-ride-mtb-1710_alpcluenas.gpx",
+      "direction": "forward",
+      "label": "Alp Clünas - Val Tasna"
+    }
+  ],
+  "trailforks_trails": [],
+  "fetched_trailforks": []
+}
