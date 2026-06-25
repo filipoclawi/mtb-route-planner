@@ -47,7 +47,7 @@ Install/import Switzerland graph, verify `/info`, available profiles and details
 Implemented: use the logged-in Firefox Trailforks session/cookies with Trailforks' official GPX export endpoint, download source GPX into `runs/<run>/source_trails/`, and allow request YAML to specify `trailforks_trails` directly.
 
 ### Chunk 4 — Swisstopo elevation + gradients
-Densify stitched route, call geo.admin.ch profile API, compute raw plus 20/25/50/100 m smoothed gradients, update viewer. Current viewer uses 25 m smoothed gradient for map coloring and charting, with a fixed asymmetric scale for steep descents vs ascents; 50 m remains in analysis/table for comparison. Implemented for the current POC route with a single request below the 5,000-coordinate profile API limit; chunking remains a future hardening task for longer routes.
+Densify stitched route, call geo.admin.ch profile API, compute raw plus 20/25/50/100 m smoothed gradients, update viewer. Current viewer uses 25 m smoothed gradient for map coloring and charting, with separate route-direction color families: uphill green/yellow/red and downhill cyan/blue/purple. 50 m remains in analysis/table for comparison. Implemented for the current POC route with a single request below the 5,000-coordinate profile API limit; chunking remains a future hardening task for longer routes.
 
 ### Chunk 5 — publishing
 Implemented: public GitHub Pages root is now a history index, with each published run copied under `results/<slug>/`; `latest.html` redirects to the latest result. Trailforks-derived public viewers include explicit Trailforks/Outside attribution.
@@ -60,7 +60,7 @@ Implemented: public GitHub Pages root is now a history index, with each publishe
 - Latest published result: `results/2026-06-25-schindellegi-etzel-ii/`.
 - Previous Alp Clünas POC preserved at `results/2026-06-25-alp-cluenas-swisstopo-poc/`.
 - Deployment verified in browser: history index and Etzel II viewer loaded, and no console errors.
-- Published viewers include mobile-first layout, fixed-scale 25 m gradient map coloring, endpoint section markers, elevation/gradient charts, section gain/loss table, and click/scrub map readout for distance/elevation/gradient.
+- Published viewers include mobile-first layout, distinct uphill/downhill 25 m gradient map coloring, endpoint section markers, elevation/gradient charts, section gain/loss table, and click/scrub map readout for distance/elevation/gradient.
 
 ## GraphHopper local setup
 
