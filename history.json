@@ -1,0 +1,76 @@
+{
+  "runs": [
+    {
+      "slug": "2026-06-25-alp-cluenas-swisstopo-poc",
+      "title": "POC Alp Clünas access route",
+      "published_at": "preserved-from-original-root",
+      "path": "results/2026-06-25-alp-cluenas-swisstopo-poc/",
+      "metrics": {
+        "distance_km": 28.34,
+        "point_count": 3147,
+        "gain_m": 1020,
+        "loss_m": 1933,
+        "min_ele_m": 1173,
+        "max_ele_m": 2512,
+        "section_count": 2
+      },
+      "source_references": [
+        {
+          "type": "graphhopper",
+          "url": "http://127.0.0.1:8989",
+          "profile": "mtb"
+        },
+        {
+          "type": "swisstopo_profile",
+          "url": "https://api3.geo.admin.ch/rest/services/profile.json"
+        },
+        {
+          "type": "local_gpx",
+          "path": "/home/filipo/.hermes/exports/mtb-gpx/alp-cluenas-val-tasna-ride-mtb-1710_alpcluenas.gpx"
+        }
+      ]
+    },
+    {
+      "slug": "2026-06-25-schindellegi-etzel-ii",
+      "title": "Schindellegi station → Etzel II",
+      "published_at": "2026-06-25T21:34:52+00:00",
+      "path": "results/2026-06-25-schindellegi-etzel-ii/",
+      "metrics": {
+        "distance_km": 6.96,
+        "point_count": 302,
+        "gain_m": 303,
+        "loss_m": 255,
+        "min_ele_m": 752,
+        "max_ele_m": 1001,
+        "section_count": 2
+      },
+      "source_references": [
+        {
+          "type": "graphhopper",
+          "url": "http://127.0.0.1:8989",
+          "profile": "mtb"
+        },
+        {
+          "type": "swisstopo_profile",
+          "url": "https://api3.geo.admin.ch/rest/services/profile.json"
+        },
+        {
+          "type": "trailforks_gpx",
+          "path": "runs/etzel_ii_trailforks/source_trails/etzel-ii.gpx"
+        },
+        {
+          "type": "trailforks",
+          "source_url": "https://www.trailforks.com/trails/etzel-ii/",
+          "slug": "etzel-ii",
+          "trail_id": null,
+          "name": "Etzel II",
+          "gpx_url": "https://www.trailforks.com/trails/etzel-ii/gpx/",
+          "output_path": "runs/etzel_ii_trailforks/source_trails/etzel-ii.gpx",
+          "content_type": "application/gpx+xml",
+          "content_disposition": "attachment; filename=\"etzel-ii.gpx\"",
+          "byte_count": 3140
+        }
+      ]
+    }
+  ]
+}

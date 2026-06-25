@@ -20,11 +20,11 @@ Build a local Hermes-facing MTB route-builder service that starts with a minimal
 - [x] Publish the current POC viewer through GitHub Pages for user review.
 - [x] Connect to a real local GraphHopper Switzerland server at `http://localhost:8989`.
 - [x] Rerun the current POC against real GraphHopper and publish updated viewer.
-- [ ] Add Trailforks browser/download ingestion. **Paused until Armin approves continuing beyond Swisstopo/gradient slice.**
+- [x] Add Trailforks browser/download ingestion.
 - [x] Add Swisstopo/geo.admin.ch elevation enrichment.
 - [x] Add gradient analysis and section-level metrics.
 - [x] Update viewer with elevation and 50 m smoothed gradient charts.
-- [ ] Add optional public static publishing automation beyond this one-off POC deployment. **Paused.**
+- [x] Add optional public static publishing automation/history index for this GitHub Pages deployment.
 
 ## Vertical chunks
 
@@ -43,20 +43,23 @@ python3 -m mtb_route_builder.cli build --request examples/local_gpx_request.yaml
 Install/import Switzerland graph, verify `/info`, available profiles and details, then run the same POC against localhost:8989. Recommended approach: install a local JDK under `~/.hermes/runtime/`, download a pinned GraphHopper web/server release under `~/.hermes/apps/graphhopper/`, download Geofabrik `switzerland-latest.osm.pbf` under `~/.hermes/data/graphhopper/`, and run it as a user-level systemd service. This keeps everything reversible and avoids Docker/sudo coupling while staying close to upstream GraphHopper docs.
 
 ### Chunk 3 — Trailforks ingestion
-Use logged-in browser cookies/session to download official GPX into `runs/<run>/source_trails/`; cache by URL.
+Implemented: use the logged-in Firefox Trailforks session/cookies with Trailforks' official GPX export endpoint, download source GPX into `runs/<run>/source_trails/`, and allow request YAML to specify `trailforks_trails` directly.
 
 ### Chunk 4 — Swisstopo elevation + gradients
 Densify stitched route, call geo.admin.ch profile API, compute raw plus 20/50/100 m smoothed gradients, update viewer. Implemented for the current POC route with a single request below the 5,000-coordinate profile API limit; chunking remains a future hardening task for longer routes.
 
 ### Chunk 5 — publishing
-Local-only by default; add explicit publish target with privacy/redaction checks.
+Implemented: public GitHub Pages root is now a history index, with each published run copied under `results/<slug>/`; `latest.html` redirects to the latest result. Trailforks-derived public viewers include explicit Trailforks/Outside attribution.
 
 ## Public POC viewer
 
 - Live URL: https://filipoclawi.github.io/mtb-route-planner/
 - GitHub repo: https://github.com/filipoclawi/mtb-route-planner
-- Deployment verified in browser: heading/table/map loaded, and no console errors.
-- Current deployment includes Swisstopo elevation, 50 m smoothed gradient chart, section gain/loss table, and synchronized chart hover/map marker.
+- Root page is now a history index of published route builds.
+- Latest published result: `results/2026-06-25-schindellegi-etzel-ii/`.
+- Previous Alp Clünas POC preserved at `results/2026-06-25-alp-cluenas-swisstopo-poc/`.
+- Deployment verified in browser: history index and Etzel II viewer loaded, and no console errors.
+- Published viewers include Swisstopo elevation, 50 m smoothed gradient chart, section gain/loss table, and synchronized chart hover/map marker.
 
 ## GraphHopper local setup
 
@@ -110,6 +113,28 @@ POC run:
 - Steepest 50 m smoothed gradient: +25.0% / -54.6%.
 - Local and deployed viewers verified with no browser console errors.
 
+## Trailforks ingestion slice
+
+Implemented and verified:
+
+- New module: `mtb_route_builder/trailforks.py`.
+- New CLI: `python3 -m mtb_route_builder.cli fetch-trailforks --url <trail-url> --out <path.gpx>`.
+- Request YAML can now use `trailforks_trails` entries instead of pre-downloaded `local_trails`.
+- Fetch uses existing logged-in Firefox cookies and the official Trailforks GPX export endpoint; it does not scrape map tiles or bypass account/download restrictions.
+- Example request: `examples/trailforks_etzel_ii_request.yaml`.
+
+Etzel II test run:
+
+- Source: `https://www.trailforks.com/trails/etzel-ii/`.
+- Start: Schindellegi-Feusisberg train station (`47.1764319, 8.7094217`).
+- Run dir: `/home/filipo/.hermes/workspace/mtb-route-planner/runs/etzel_ii_trailforks`.
+- Fetched GPX: `runs/etzel_ii_trailforks/source_trails/etzel-ii.gpx` (`application/gpx+xml`, 3,140 bytes, 24 GPX points).
+- Unified route: 6.96 km, 302 points.
+- Connector: 6.33 km, +302 m / -175 m.
+- Trailforks Etzel II segment: 0.63 km, +1 m / -80 m.
+- Swisstopo overall gain/loss: about +303 m / -255 m.
+- Local viewer verified in browser with no console errors.
+
 Verification commands:
 
 ```bash
@@ -121,4 +146,4 @@ python3 -m mtb_route_builder.cli inspect --run-dir runs/swisstopo_gradient_poc
 ```
 
 ## Current status / next pause point
-GraphHopper Switzerland local routing, Swisstopo elevation enrichment, gradient analysis, and the richer static viewer are implemented and verified. The next implementation slice — Trailforks browser/download ingestion — remains paused until Armin explicitly approves continuing.
+GraphHopper Switzerland local routing, Trailforks GPX ingestion, Swisstopo elevation enrichment, gradient analysis, and public history publishing are implemented and verified. Keep future runs local-only by default unless Armin explicitly asks to publish; when publishing, add them under `results/<slug>/` and update `history.json`/root index.

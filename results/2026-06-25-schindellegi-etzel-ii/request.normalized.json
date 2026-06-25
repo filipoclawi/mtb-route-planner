@@ -1,0 +1,27 @@
+{
+  "name": "Schindellegi station → Etzel II",
+  "graphhopper_url": "http://127.0.0.1:8989",
+  "profile": "mtb",
+  "local_trails": [],
+  "trailforks_trails": [
+    {
+      "id": "etzel-ii",
+      "url": "https://www.trailforks.com/trails/etzel-ii/",
+      "direction": "forward",
+      "label": "Etzel II"
+    }
+  ],
+  "fetched_trailforks": [
+    {
+      "source_url": "https://www.trailforks.com/trails/etzel-ii/",
+      "slug": "etzel-ii",
+      "trail_id": null,
+      "name": "Etzel II",
+      "gpx_url": "https://www.trailforks.com/trails/etzel-ii/gpx/",
+      "output_path": "runs/etzel_ii_trailforks/source_trails/etzel-ii.gpx",
+      "content_type": "application/gpx+xml",
+      "content_disposition": "attachment; filename=\"etzel-ii.gpx\"",
+      "byte_count": 3140
+    }
+  ]
+}

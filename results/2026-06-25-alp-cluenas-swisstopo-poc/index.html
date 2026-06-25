@@ -1,0 +1,62 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>POC Alp Clünas access route</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;color:#18202a} header{padding:1rem 1.25rem;background:#f7f9fb;border-bottom:1px solid #dbe3ea}
+  h1{margin:.1rem 0 .25rem} #map{height:58vh} .grid{display:grid;grid-template-columns:1fr;gap:1rem;padding:1rem}
+  @media(min-width:900px){.grid{grid-template-columns:1fr 1fr} #summary{grid-column:1 / span 2}}
+  .card{border:1px solid #dbe3ea;border-radius:12px;padding:.75rem;background:white;box-shadow:0 1px 4px #00000012}
+  .metrics{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:.5rem} .metric{background:white;border:1px solid #dbe3ea;border-radius:10px;padding:.5rem .75rem}
+  .metric b{display:block;font-size:1.05rem} .warn{color:#9a5b00} table{border-collapse:collapse;width:100%;font-size:.92rem} td,th{border:1px solid #ddd;padding:.35rem .5rem;text-align:left} th{background:#f1f4f7}
+  a{color:#0b63ce} .small{font-size:.88rem;color:#52606d}
+</style>
+</head><body><header><h1>POC Alp Clünas access route</h1><p>Connector sections are blue; source trail sections are green. Elevation and gradients use Swisstopo/geo.admin.ch when available.</p><p><a href="unified_route.gpx">Download GPX</a> · <a href="unified_route.geojson">GeoJSON</a> · <a href="route_analysis.json">Analysis JSON</a> · <a href="route_summary.md">Summary</a></p><p class="small"><a href="../../">← All published MTB route results</a></p><div id="metrics" class="metrics"></div></header><div id="map"></div><main class="grid"><section class="card"><h2>Elevation profile</h2><div id="elevationChart"></div></section><section class="card"><h2>50 m smoothed gradient</h2><div id="gradientChart"></div><p class="small">Raw point-to-point gradients can spike; use the 50 m smoothed line for interpretation.</p></section><section id="summary" class="card"></section></main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function fmtKm(m){ return `${(m/1000).toFixed(2)} km`; }
+function fmtM(m){ return m==null ? '—' : `${Math.round(m)} m`; }
+function fmtPct(p){ return p==null ? '—' : `${p.toFixed(1)}%`; }
+function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+fetch('viewer_data.json').then(r=>r.json()).then(data=>{
+  const pts=data.points.map(p=>[p.lat,p.lon]);
+  const map=L.map('map');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+  const bySec={}; for (const p of data.points) { (bySec[p.section_id] ||= []).push([p.lat,p.lon]); }
+  const colors={graphhopper_connector:'#1f78b4', local_trail_gpx:'#33a02c'};
+  for (const sec of data.sections) {
+    L.polyline(bySec[sec.id]||[], {color: colors[sec.type] || '#666', weight:5}).addTo(map).bindPopup(`<b>${esc(sec.name)}</b><br>${fmtKm(sec.distance_m)}<br>Gain/loss: ${fmtM(sec.gain_m)} / ${fmtM(sec.loss_m)}<br>Max 50 m: +${fmtPct(sec.max_gradient_50m_up_percent)} / ${fmtPct(sec.max_gradient_50m_down_percent)}`);
+  }
+  L.circleMarker(pts[0], {radius:7,color:'#111'}).addTo(map).bindPopup('Start');
+  L.circleMarker(pts[pts.length-1], {radius:7,color:'#b22222'}).addTo(map).bindPopup('Finish');
+  const hover = L.circleMarker(pts[0], {radius:7,color:'#ff7f00',fillColor:'#ff7f00',fillOpacity:0.9}).addTo(map);
+  map.fitBounds(L.latLngBounds(pts), {padding:[20,20]});
+
+  const profile = (data.profile_points || []).filter(p=>p.ele_m != null);
+  const x = profile.map(p=>p.distance_m/1000);
+  const ele = profile.map(p=>p.ele_m);
+  const grad = profile.map(p=>p.gradient_50m_percent);
+  const finiteGrad = grad.filter(v=>v!=null && isFinite(v));
+  const hoverText = profile.map(p=>`${fmtKm(p.distance_m)}<br>${Math.round(p.ele_m)} m<br>${esc(p.section_id)}`);
+  if (profile.length) {
+    Plotly.newPlot('elevationChart', [{x, y: ele, type:'scatter', mode:'lines', line:{color:'#5b3a96', width:2}, text:hoverText, hovertemplate:'%{text}<extra></extra>'}], {margin:{l:48,r:12,t:10,b:40}, xaxis:{title:'Distance (km)'}, yaxis:{title:'Elevation (m)'}, showlegend:false}, {displayModeBar:false, responsive:true});
+    Plotly.newPlot('gradientChart', [{x, y: grad, type:'scatter', mode:'lines', line:{color:'#d95f02', width:1.5}, hovertemplate:'%{x:.2f} km<br>%{y:.1f}%<extra></extra>'}], {margin:{l:48,r:12,t:10,b:40}, xaxis:{title:'Distance (km)'}, yaxis:{title:'Gradient %', zeroline:true, range:[Math.min(-30, ...finiteGrad), Math.max(30, ...finiteGrad)]}, showlegend:false}, {displayModeBar:false, responsive:true});
+    function moveHoverByIndex(i) { const p=profile[Math.max(0, Math.min(profile.length-1, i))]; if (p) hover.setLatLng([p.lat,p.lon]); }
+    document.getElementById('elevationChart').on('plotly_hover', ev=>moveHoverByIndex(ev.points[0].pointIndex));
+    document.getElementById('gradientChart').on('plotly_hover', ev=>moveHoverByIndex(ev.points[0].pointIndex));
+    map.on('click', ev=>{
+      let best=0, bestD=Infinity;
+      for (let i=0;i<profile.length;i++){ const d=(profile[i].lat-ev.latlng.lat)**2+(profile[i].lon-ev.latlng.lng)**2; if(d<bestD){bestD=d; best=i;} }
+      moveHoverByIndex(best);
+      Plotly.Fx.hover('elevationChart', [{curveNumber:0, pointNumber:best}]);
+    });
+  } else {
+    document.getElementById('elevationChart').innerHTML = '<p class="warn">No elevation profile available.</p>';
+    document.getElementById('gradientChart').innerHTML = '<p class="warn">No gradient profile available.</p>';
+  }
+  const o=data.overall || {};
+  document.getElementById('metrics').innerHTML = `<div class="metric"><span>Distance</span><b>${fmtKm(data.points.at(-1).distance_m)}</b></div><div class="metric"><span>Gain / loss</span><b>${fmtM(o.gain_m)} / ${fmtM(o.loss_m)}</b></div><div class="metric"><span>Altitude</span><b>${fmtM(o.min_ele_m)}–${fmtM(o.max_ele_m)}</b></div><div class="metric"><span>Steepest 50 m</span><b>+${fmtPct(o.max_gradient_50m_up_percent)} / ${fmtPct(o.max_gradient_50m_down_percent)}</b></div>`;
+  document.getElementById('summary').innerHTML = `<h2>Sections</h2><table><tr><th>Section</th><th>Type</th><th>Distance</th><th>Gain</th><th>Loss</th><th>Max 50 m up/down</th><th>&gt;10%</th><th>&gt;15%</th></tr>${data.sections.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.type)}</td><td>${fmtKm(s.distance_m)}</td><td>${fmtM(s.gain_m)}</td><td>${fmtM(s.loss_m)}</td><td>+${fmtPct(s.max_gradient_50m_up_percent)} / ${fmtPct(s.max_gradient_50m_down_percent)}</td><td>${fmtM(s.distance_above_10_percent_m)}</td><td>${fmtM(s.distance_above_15_percent_m)}</td></tr>`).join('')}</table>` + (data.warnings.length ? `<p class="warn"><b>Warnings:</b> ${data.warnings.map(esc).join('; ')}</p>` : '');
+}).catch(e=>{ document.body.insertAdjacentHTML('beforeend', `<pre class="warn">Viewer failed: ${esc(e && e.message || e)}</pre>`); });
+</script></body></html>

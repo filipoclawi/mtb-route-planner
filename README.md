@@ -1,7 +1,7 @@
-# MTB route planner POC
+# MTB route planner results
 
-Public static preview of the current local MTB route planner proof-of-concept.
+Public static history for MTB route planner builds.
 
 Live site: https://filipoclawi.github.io/mtb-route-planner/
 
-This is a placeholder viewer generated from a local GPX + GraphHopper-compatible stub route. It is for reviewing the artifact format and viewer structure before continuing with Trailforks ingestion, real GraphHopper Switzerland routing, Swisstopo elevation enrichment, and gradient analysis.
+Each result is kept under `results/<published-run>/` with viewer, GPX, GeoJSON, summary, and analysis JSON.
