@@ -26,6 +26,7 @@ Build a local Hermes-facing MTB route-builder service that starts with a minimal
 - [x] Update viewer with elevation and 50 m smoothed gradient charts.
 - [x] Add 25 m gradient mode, fixed public gradient color scale, mobile-first viewer UX, and map click/scrub readout.
 - [x] Add optional public static publishing automation/history index for this GitHub Pages deployment.
+- [x] Add authenticated Komoot export flow: public button only creates a Telegram approval request; actual Komoot import remains local and requires Armin approval in Telegram.
 
 ## Vertical chunks
 
@@ -52,6 +53,21 @@ Densify stitched route, call geo.admin.ch profile API, compute raw plus 20/25/50
 ### Chunk 5 — publishing
 Implemented: public GitHub Pages root is now a history index, with each published run copied under `results/<slug>/`; `latest.html` redirects to the latest result. Trailforks-derived public viewers include explicit Trailforks/Outside attribution.
 
+### Chunk 6 — Komoot export auth gate
+Implemented: viewer has an `Export to Komoot` button, but the static site never writes to Komoot and holds no secret. The button asks for browser confirmation, opens Telegram share with route slug/GPX URL, and relies on Armin's Telegram approval as the authenticator. After approval, run the local importer:
+
+```bash
+/home/filipo/.hermes/data/whatsapp-web-chromium/venv/bin/python scripts/export_to_komoot.py --slug <published-route-slug>
+```
+
+Dry-run validation:
+
+```bash
+/home/filipo/.hermes/data/whatsapp-web-chromium/venv/bin/python scripts/export_to_komoot.py --slug 2026-06-25-schindellegi-etzel-ii --dry-run
+```
+
+The script validates the slug against local `history.json`, reads the GPX from the published local repo mirror, uses Armin's Firefox Komoot cookies, imports as planned MTB-Enduro, continuous/single-stage, and follows the original route line if Komoot asks.
+
 ## Public POC viewer
 
 - Live URL: https://filipoclawi.github.io/mtb-route-planner/
@@ -60,7 +76,7 @@ Implemented: public GitHub Pages root is now a history index, with each publishe
 - Latest published result: `results/2026-06-25-schindellegi-etzel-ii/`.
 - Previous Alp Clünas POC preserved at `results/2026-06-25-alp-cluenas-swisstopo-poc/`.
 - Deployment verified in browser: history index and Etzel II viewer loaded, and no console errors.
-- Published viewers include mobile-first layout, distinct uphill/downhill 25 m gradient map coloring, endpoint section markers, elevation/gradient charts, section gain/loss table, and click/scrub map readout for distance/elevation/gradient.
+- Published viewers include mobile-first layout, distinct uphill/downhill 25 m gradient map coloring, endpoint section markers, elevation/gradient charts, section gain/loss table, click/scrub map readout for distance/elevation/gradient, and an `Export to Komoot` button that only sends a Telegram approval request.
 
 ## GraphHopper local setup
 
@@ -147,4 +163,4 @@ python3 -m mtb_route_builder.cli inspect --run-dir runs/swisstopo_gradient_poc
 ```
 
 ## Current status / next pause point
-GraphHopper Switzerland local routing, Trailforks GPX ingestion, Swisstopo elevation enrichment, gradient analysis, and public history publishing are implemented and verified. Keep future runs local-only by default unless Armin explicitly asks to publish; when publishing, add them under `results/<slug>/` and update `history.json`/root index.
+GraphHopper Switzerland local routing, Trailforks GPX ingestion, Swisstopo elevation enrichment, gradient analysis, public history publishing, and Telegram-approved Komoot export scaffolding are implemented and verified. Keep future runs local-only by default unless Armin explicitly asks to publish; when publishing, add them under `results/<slug>/` and update `history.json`/root index. Never import to Komoot from the public site alone; only run `scripts/export_to_komoot.py` after Armin approves the specific slug in Telegram.
