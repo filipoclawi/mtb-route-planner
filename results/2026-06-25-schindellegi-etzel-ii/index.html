@@ -53,7 +53,7 @@ Slug: ${slug}
 GPX: ${gpxUrl}
 
 Reply in the private approval chat to approve this export.`;
-    const ok=window.confirm('Confirm sending Komoot export request?');
+    const ok=window.confirm('Confirm send authentication request to admin');
     if(!ok) return;
     btn.textContent='Opening share…';
     try{ await navigator.clipboard?.writeText(msg); }catch(e){}
