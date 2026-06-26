@@ -3,7 +3,7 @@
     {
       "slug": "2026-06-25-alp-cluenas-swisstopo-poc",
       "title": "POC Alp Clünas access route",
-      "published_at": "2026-06-26T06:22:40+00:00",
+      "published_at": "2026-06-26T06:36:52+00:00",
       "path": "results/2026-06-25-alp-cluenas-swisstopo-poc/",
       "metrics": {
         "distance_km": 28.34,
@@ -33,7 +33,7 @@
     {
       "slug": "2026-06-25-schindellegi-etzel-ii",
       "title": "Schindellegi station → Etzel II",
-      "published_at": "2026-06-26T06:22:41+00:00",
+      "published_at": "2026-06-26T06:36:53+00:00",
       "path": "results/2026-06-25-schindellegi-etzel-ii/",
       "metrics": {
         "distance_km": 6.96,

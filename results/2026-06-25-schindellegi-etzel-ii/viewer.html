@@ -17,7 +17,7 @@
   @media (orientation:landscape) and (max-height:520px){header{padding:.45rem .7rem}.intro{display:none}.links a,.links button{min-height:36px;padding:.25rem .55rem}.metrics{display:flex}.metric{padding:.35rem .5rem}.metric span{font-size:.7rem}.metric b{font-size:.9rem}#map{height:67svh;min-height:260px}.grid{grid-template-columns:1fr 1fr}.chart{height:210px}#mapInfo{left:auto;width:330px;right:.55rem;bottom:.55rem}}
   @media (max-width:420px){.metrics{grid-template-columns:1fr 1fr}.grid{padding:.6rem;gap:.6rem}.chart{height:210px}#mapInfo{font-size:.82rem}.hidePhone{display:none}}
 </style>
-</head><body><header><h1>Schindellegi station → Etzel II</h1><p class="intro">Map color uses the route direction: uphill fades green → yellow → red; downhill uses cyan → blue → purple. Section starts/ends are marked separately; tap/scrub for exact gradient.</p><p class="links"><a href="unified_route.gpx">GPX</a><a href="unified_route.geojson">GeoJSON</a><a href="route_analysis.json">Analysis</a><a href="route_summary.md">Summary</a><button id="komootExport" type="button">Export to Komoot</button></p><p class="small"><a href="../../">← All published MTB route results</a></p><p class="small"><b>Attribution:</b> Trail geometry/data from <a href="https://www.trailforks.com/">Trailforks</a> / Outside Interactive; GraphHopper used for the access connector; Swisstopo/geo.admin.ch used for elevation.</p><div id="metrics" class="metrics"></div></header><div id="mapWrap"><div id="map"></div><div id="mapInfo"><span class="infoWide">Tap or scrub along the route</span><span>Distance<br><b id="infoDist">—</b></span><span>Elevation<br><b id="infoEle">—</b></span><span>25 m gradient<br><b id="infoGrad">—</b></span><span>Section<br><b id="infoSec">—</b></span></div></div><main class="grid"><section class="card"><h2>Elevation profile</h2><div id="elevationChart" class="chart"></div></section><section class="card"><h2>25 m averaged gradient</h2><div id="gradientChart" class="chart"></div><p class="small">Positive/negative gradient is computed in route direction. If a source GPX has no explicit direction, its point order is used as the assumed direction.</p></section><section id="summary" class="card wide"></section></main>
+</head><body><header><h1>Schindellegi station → Etzel II</h1><p class="intro">Map color uses the route direction: uphill fades green → yellow → red; downhill uses cyan → blue → purple. Section starts/ends are marked separately; tap/scrub for exact gradient.</p><p class="links"><a href="unified_route.gpx">GPX</a><a href="unified_route.geojson">GeoJSON</a><a href="route_analysis.json">Analysis</a><a href="route_summary.md">Summary</a><button id="komootExport" type="button">Export to Komoot</button></p><p id="komootStatus" class="small" aria-live="polite"></p><p class="small"><a href="../../">← All published MTB route results</a></p><p class="small"><b>Attribution:</b> Trail geometry/data from <a href="https://www.trailforks.com/">Trailforks</a> / Outside Interactive; GraphHopper used for the access connector; Swisstopo/geo.admin.ch used for elevation.</p><div id="metrics" class="metrics"></div></header><div id="mapWrap"><div id="map"></div><div id="mapInfo"><span class="infoWide">Tap or scrub along the route</span><span>Distance<br><b id="infoDist">—</b></span><span>Elevation<br><b id="infoEle">—</b></span><span>25 m gradient<br><b id="infoGrad">—</b></span><span>Section<br><b id="infoSec">—</b></span></div></div><main class="grid"><section class="card"><h2>Elevation profile</h2><div id="elevationChart" class="chart"></div></section><section class="card"><h2>25 m averaged gradient</h2><div id="gradientChart" class="chart"></div><p class="small">Positive/negative gradient is computed in route direction. If a source GPX has no explicit direction, its point order is used as the assumed direction.</p></section><section id="summary" class="card wide"></section></main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const UPHILL_STOPS = [[3,'#d9d9d9'],[8,'#2ca25f'],[12,'#a1d76a'],[18,'#fee08b'],[25,'#f46d43'],[Infinity,'#b2182b']];
@@ -41,25 +41,31 @@ function routeSlug(){
 }
 function setupKomootExport(){
   const btn=document.getElementById('komootExport');
+  const status=document.getElementById('komootStatus');
+  const endpoint='https://concepts-dropped-considers-warranties.trycloudflare.com/request-komoot-export';
   if(!btn) return;
   btn.addEventListener('click', async ()=>{
+    const ok=window.confirm('Confirm send authentication request to admin');
+    if(!ok) return;
     const slug=routeSlug();
     const title=(document.querySelector('h1')?.textContent || slug).trim();
     const gpxUrl=new URL('unified_route.gpx', location.href).href;
-    const msg=`Komoot export request
-
-Route: ${title}
-Slug: ${slug}
-GPX: ${gpxUrl}
-
-Reply in the private approval chat to approve this export.`;
-    const ok=window.confirm('Confirm send authentication request to admin');
-    if(!ok) return;
-    btn.textContent='Opening share…';
-    try{ await navigator.clipboard?.writeText(msg); }catch(e){}
-    const share=`https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(msg)}`;
-    window.open(share, '_blank', 'noopener,noreferrer');
-    setTimeout(()=>{ btn.textContent='Export to Komoot'; }, 1600);
+    const oldText=btn.textContent;
+    btn.disabled=true;
+    btn.textContent='Sending request…';
+    if(status) status.textContent='Sending export request…';
+    try{
+      if(!endpoint) throw new Error('Export backend is not configured.');
+      const res=await fetch(endpoint, {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({slug, title, gpx_url:gpxUrl, page_url:location.href})});
+      if(!res.ok) throw new Error('Request failed.');
+      btn.textContent='Request sent';
+      if(status) status.textContent='Request sent. You can close this page.';
+      setTimeout(()=>{ btn.textContent=oldText; btn.disabled=false; }, 2500);
+    }catch(e){
+      btn.textContent=oldText;
+      btn.disabled=false;
+      if(status) status.textContent='Could not send request. Try again later.';
+    }
   });
 }
 function updateInfo(p, sections){
