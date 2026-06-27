@@ -108,6 +108,52 @@
           "url": "https://api3.geo.admin.ch/rest/services/profile.json"
         }
       ]
+    },
+    {
+      "slug": "2026-06-27-zavretta-trailforks-preda-berguen",
+      "title": "Fuorcla Zavretta Trailforks + Preda–Bergün singletrail",
+      "published_at": "2026-06-27T19:32:04+00:00",
+      "path": "results/2026-06-27-zavretta-trailforks-preda-berguen/",
+      "metrics": {
+        "distance_km": 24.18,
+        "point_count": 1871,
+        "gain_m": 1039,
+        "loss_m": 2270,
+        "min_ele_m": 1015,
+        "max_ele_m": 2900,
+        "section_count": 6
+      },
+      "source_references": [
+        {
+          "type": "ride_mtb",
+          "url": "https://www.ride-mtb.com/de/touren/fuorcla-zavretta",
+          "source_file": "fuorcla-zavretta-ab-albula-hospiz-ride-mtb.gpx",
+          "used_parts": "Albula Hospiz→Fuorcla Zavretta and Bergün→Filisur"
+        },
+        {
+          "type": "trailforks",
+          "url": "https://www.trailforks.com/trails/fuorcla-zavretta/",
+          "source_file": "trailforks-fuorcla-zavretta.gpx",
+          "used_part": "full trail"
+        },
+        {
+          "type": "osm_hiking_relation",
+          "id": 912420,
+          "name": "Bahnerlebnisweg Albula",
+          "website": "https://www.rhb.ch/de/freizeit-ausfluege/abenteuer-sport/bahnerlebnisweg-albula",
+          "used_part": "Preda→Bergün"
+        },
+        {
+          "type": "graphhopper",
+          "url": "http://127.0.0.1:8989",
+          "profile": "mtb",
+          "used_for": "short Preda/Bergün links"
+        },
+        {
+          "type": "swisstopo_profile",
+          "url": "https://api3.geo.admin.ch/rest/services/profile.json"
+        }
+      ]
     }
   ]
 }
