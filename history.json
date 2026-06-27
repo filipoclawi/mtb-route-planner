@@ -71,6 +71,43 @@
           "byte_count": 3140
         }
       ]
+    },
+    {
+      "slug": "2026-06-27-val-sinestra-ii-iii",
+      "title": "Val Sinestra II + III",
+      "published_at": "2026-06-27T11:44:43+00:00",
+      "path": "results/2026-06-27-val-sinestra-ii-iii/",
+      "metrics": {
+        "distance_km": 3.33,
+        "point_count": 85,
+        "gain_m": 200,
+        "loss_m": 277,
+        "min_ele_m": 1367,
+        "max_ele_m": 1482,
+        "section_count": 2
+      },
+      "source_references": [
+        {
+          "type": "trailforks",
+          "source_url": "https://www.trailforks.com/goto/trail/680086/",
+          "url": "https://www.trailforks.com/trails/val-sinestra-ii/",
+          "slug": "val-sinestra-ii",
+          "name": "Val Sinestra II",
+          "output_path": "trailforks-val-sinestra-ii-680086.gpx"
+        },
+        {
+          "type": "trailforks",
+          "source_url": "https://www.trailforks.com/goto/trail/680090/",
+          "url": "https://www.trailforks.com/trails/val-sinestra-iii/",
+          "slug": "val-sinestra-iii",
+          "name": "Val Sinestra III",
+          "output_path": "trailforks-val-sinestra-iii-680090.gpx"
+        },
+        {
+          "type": "swisstopo_profile",
+          "url": "https://api3.geo.admin.ch/rest/services/profile.json"
+        }
+      ]
     }
   ]
 }

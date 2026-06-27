@@ -1,0 +1,131 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Val Sinestra II + III</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  :root{--border:#dbe3ea;--muted:#52606d;--bg:#f7f9fb;--blue:#1769aa;--green:#16864b;--danger:#b22222;--tap:44px}
+  *{box-sizing:border-box} body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;color:#18202a;background:var(--bg);-webkit-text-size-adjust:100%}
+  header{padding:.7rem .85rem calc(.65rem + env(safe-area-inset-top));background:white;border-bottom:1px solid var(--border)}
+  h1{margin:.05rem 0 .25rem;font-size:clamp(1.15rem,5vw,1.9rem);line-height:1.12} h2{font-size:1.05rem;margin:.15rem 0 .5rem}
+  p{margin:.3rem 0}.small{font-size:.86rem;color:var(--muted);line-height:1.32}.links{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.4rem}.links a,.links button{min-height:var(--tap);display:inline-flex;align-items:center;padding:.42rem .6rem;border:1px solid var(--border);border-radius:999px;background:#fff;text-decoration:none;color:#0b63ce;font:inherit}.links button{cursor:pointer;background:#eef7ff}.links button:active{transform:translateY(1px)}
+  a{color:#0b63ce}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-top:.5rem}.metric{background:#fff;border:1px solid var(--border);border-radius:12px;padding:.48rem .58rem}.metric span{font-size:.75rem;color:var(--muted)}.metric b{display:block;font-size:1rem;line-height:1.15}
+  #mapWrap{position:relative;background:#dde6ee} #map{height:49svh;min-height:345px;width:100%}.leaflet-container{font:inherit}.leaflet-touch .leaflet-bar a{width:40px;height:40px;line-height:40px}
+  #mapInfo{position:absolute;z-index:900;left:.55rem;right:.55rem;bottom:.6rem;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:14px;padding:.55rem .65rem;box-shadow:0 4px 18px #0002;display:grid;grid-template-columns:1fr 1fr;gap:.25rem .6rem;font-size:.88rem;pointer-events:none} #mapInfo b{font-size:.95rem}.infoWide{grid-column:1/-1;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr;gap:.75rem;padding:.75rem}.card{border:1px solid var(--border);border-radius:14px;padding:.65rem;background:white;box-shadow:0 1px 4px #00000012;min-width:0}.chart{height:230px;width:100%}.warn{color:#9a5b00}.tableWrap{overflow-x:auto;-webkit-overflow-scrolling:touch} table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:760px}td,th{border:1px solid #ddd;padding:.4rem .45rem;text-align:left;vertical-align:top}th{background:#f1f4f7;position:sticky;top:0}.dot{display:inline-block;width:.75rem;height:.75rem;border-radius:50%;margin-right:.35rem;vertical-align:-.08rem;border:1px solid #0004}.startEnd{font-size:.78rem;color:var(--muted);display:block;margin-top:.1rem}
+  @media (min-width:760px){.metrics{display:flex;flex-wrap:wrap}.metric{min-width:130px}.grid{grid-template-columns:1fr 1fr;padding:1rem}.wide{grid-column:1/-1}.chart{height:280px}#map{height:56svh}}
+  @media (orientation:landscape) and (max-height:520px){header{padding:.45rem .7rem}.intro{display:none}.links a,.links button{min-height:36px;padding:.25rem .55rem}.metrics{display:flex}.metric{padding:.35rem .5rem}.metric span{font-size:.7rem}.metric b{font-size:.9rem}#map{height:67svh;min-height:260px}.grid{grid-template-columns:1fr 1fr}.chart{height:210px}#mapInfo{left:auto;width:330px;right:.55rem;bottom:.55rem}}
+  @media (max-width:420px){.metrics{grid-template-columns:1fr 1fr}.grid{padding:.6rem;gap:.6rem}.chart{height:210px}#mapInfo{font-size:.82rem}.hidePhone{display:none}}
+</style>
+</head><body><header><h1>Val Sinestra II + III</h1><p class="intro">Map color uses the route direction: uphill fades green → yellow → red; downhill uses cyan → blue → purple. Section starts/ends are marked separately; tap/scrub for exact gradient.</p><p class="links"><a href="unified_route.gpx">GPX</a><a href="unified_route.geojson">GeoJSON</a><a href="route_analysis.json">Analysis</a><a href="route_summary.md">Summary</a><button id="komootExport" type="button">Export to Komoot</button></p><p id="komootStatus" class="small" aria-live="polite"></p><p class="small"><a href="../../">← All published MTB route results</a></p><p class="small"><b>Attribution:</b> Trail geometry/data from <a href="https://www.trailforks.com/">Trailforks</a> / Outside Interactive; GraphHopper used for the access connector; Swisstopo/geo.admin.ch used for elevation.</p><div id="metrics" class="metrics"></div></header><div id="mapWrap"><div id="map"></div><div id="mapInfo"><span class="infoWide">Tap or scrub along the route</span><span>Distance<br><b id="infoDist">—</b></span><span>Elevation<br><b id="infoEle">—</b></span><span>25 m gradient<br><b id="infoGrad">—</b></span><span>Section<br><b id="infoSec">—</b></span></div></div><main class="grid"><section class="card"><h2>Elevation profile</h2><div id="elevationChart" class="chart"></div></section><section class="card"><h2>25 m averaged gradient</h2><div id="gradientChart" class="chart"></div><p class="small">Positive/negative gradient is computed in route direction. If a source GPX has no explicit direction, its point order is used as the assumed direction.</p></section><section id="summary" class="card wide"></section></main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const UPHILL_STOPS = [[3,'#d9d9d9'],[8,'#2ca25f'],[12,'#a1d76a'],[18,'#fee08b'],[25,'#f46d43'],[Infinity,'#b2182b']];
+const DOWNHILL_STOPS = [[-25,'#542788'],[-18,'#8073ac'],[-12,'#2b8cbe'],[-6,'#7bccc4'],[-3,'#c7eae5'],[Infinity,'#d9d9d9']];
+const SECTION_COLORS = {graphhopper_connector:'#1769aa', local_gpx:'#16864b', local_trail_gpx:'#16864b', trailforks_gpx:'#16864b'};
+function gradientColor(g){
+  if(g==null || !isFinite(g)) return '#777';
+  if(g >= 0){ for(const [limit,color] of UPHILL_STOPS){ if(g < limit || limit === Infinity) return color; } }
+  for(const [limit,color] of DOWNHILL_STOPS){ if(g <= limit || limit === Infinity) return color; }
+  return '#777';
+}
+function fmtKm(m){ return m==null ? '—' : `${(m/1000).toFixed(2)} km`; }
+function fmtM(m){ return m==null ? '—' : `${Math.round(m)} m`; }
+function fmtPct(p){ return p==null || !isFinite(p) ? '—' : `${p.toFixed(1)}%`; }
+function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function sectionLabel(id, sections){ const s=sections.find(x=>x.id===id); return s ? s.name : id; }
+function routeSlug(){
+  const parts=location.pathname.split('/').filter(Boolean);
+  const i=parts.indexOf('results');
+  return i>=0 && parts[i+1] ? parts[i+1] : 'unknown-route';
+}
+function setupKomootExport(){
+  const btn=document.getElementById('komootExport');
+  const status=document.getElementById('komootStatus');
+  const endpoint='https://concepts-dropped-considers-warranties.trycloudflare.com/request-komoot-export';
+  if(!btn) return;
+  btn.addEventListener('click', async ()=>{
+    const ok=window.confirm('Confirm send authentication request to admin');
+    if(!ok) return;
+    const slug=routeSlug();
+    const title=(document.querySelector('h1')?.textContent || slug).trim();
+    const gpxUrl=new URL('unified_route.gpx', location.href).href;
+    const oldText=btn.textContent;
+    btn.disabled=true;
+    btn.textContent='Sending request…';
+    if(status) status.textContent='Sending export request…';
+    try{
+      if(!endpoint) throw new Error('Export backend is not configured.');
+      const res=await fetch(endpoint, {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({slug, title, gpx_url:gpxUrl, page_url:location.href})});
+      if(!res.ok) throw new Error('Request failed.');
+      btn.textContent='Request sent';
+      if(status) status.textContent='Request sent. You can close this page.';
+      setTimeout(()=>{ btn.textContent=oldText; btn.disabled=false; }, 2500);
+    }catch(e){
+      btn.textContent=oldText;
+      btn.disabled=false;
+      if(status) status.textContent='Could not send request. Try again later.';
+    }
+  });
+}
+function updateInfo(p, sections){
+  if(!p) return;
+  document.getElementById('infoDist').textContent = fmtKm(p.distance_m);
+  document.getElementById('infoEle').textContent = fmtM(p.ele_m);
+  document.getElementById('infoGrad').textContent = fmtPct(p.gradient_25m_percent);
+  document.getElementById('infoGrad').style.color = gradientColor(p.gradient_25m_percent);
+  document.getElementById('infoSec').textContent = sectionLabel(p.section_id, sections);
+}
+function nearestProfile(profile, latlng){ let best=0,bestD=Infinity; for(let i=0;i<profile.length;i++){ const d=(profile[i].lat-latlng.lat)**2+(profile[i].lon-latlng.lng)**2; if(d<bestD){bestD=d;best=i;} } return best; }
+setupKomootExport();
+fetch('viewer_data.json').then(r=>r.json()).then(data=>{
+  const routePts=data.points.map(p=>[p.lat,p.lon]);
+  const profile=(data.profile_points||[]).filter(p=>p.ele_m!=null && p.lat!=null && p.lon!=null);
+  const map=L.map('map', {tap:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+  if(profile.length > 1){
+    for(let i=1;i<profile.length;i++){
+      const p=profile[i]; const prev=profile[i-1];
+      const seg=L.polyline([[prev.lat,prev.lon],[p.lat,p.lon]], {color:gradientColor(p.gradient_25m_percent), weight:7, opacity:.92, lineCap:'round'}).addTo(map);
+      const bind=(ev)=>{ const idx=nearestProfile(profile, ev.latlng); moveHoverByIndex(idx, false); };
+      seg.on('mousemove', bind); seg.on('click', bind); seg.on('touchmove', bind);
+    }
+  } else {
+    L.polyline(routePts, {color:'#555', weight:6, opacity:.8}).addTo(map);
+  }
+
+  for(const sec of data.sections){
+    const secPts=(profile.length?profile:data.points).filter(p=>p.section_id===sec.id);
+    if(!secPts.length) continue;
+    const color=SECTION_COLORS[sec.type] || '#555';
+    const first=secPts[0], last=secPts[secPts.length-1];
+    L.circleMarker([first.lat,first.lon], {radius:7,color:'#fff',weight:2,fillColor:color,fillOpacity:1}).addTo(map).bindPopup(`<b>${esc(sec.name)}</b><br>Section start<br>${fmtKm(first.distance_m)}`);
+    L.circleMarker([last.lat,last.lon], {radius:8,color:color,weight:3,fillColor:'#fff',fillOpacity:1}).addTo(map).bindPopup(`<b>${esc(sec.name)}</b><br>Section end<br>${fmtKm(last.distance_m)}`);
+  }
+  L.circleMarker(routePts[0], {radius:9,color:'#111',weight:3,fillColor:'#fff',fillOpacity:1}).addTo(map).bindPopup('Route start');
+  L.circleMarker(routePts[routePts.length-1], {radius:9,color:'#b22222',weight:3,fillColor:'#fff',fillOpacity:1}).addTo(map).bindPopup('Route finish');
+  const hover=L.circleMarker(routePts[0], {radius:9,color:'#ff7f00',weight:3,fillColor:'#ff7f00',fillOpacity:.9}).addTo(map);
+  map.fitBounds(L.latLngBounds(routePts), {padding:[18,18]});
+
+  const x=profile.map(p=>p.distance_m/1000), ele=profile.map(p=>p.ele_m), grad25=profile.map(p=>p.gradient_25m_percent);
+  const finiteGrad=grad25.filter(v=>v!=null && isFinite(v));
+  const hoverText=profile.map(p=>`${fmtKm(p.distance_m)}<br>${Math.round(p.ele_m)} m<br>25 m: ${fmtPct(p.gradient_25m_percent)}<br>${esc(sectionLabel(p.section_id,data.sections))}`);
+  function moveHoverByIndex(i, chartHover=true){ const p=profile[Math.max(0,Math.min(profile.length-1,i))]; if(!p) return; hover.setLatLng([p.lat,p.lon]); updateInfo(p,data.sections); if(chartHover) Plotly.Fx.hover('elevationChart',[{curveNumber:0,pointNumber:i}]); }
+  if(profile.length){
+    Plotly.newPlot('elevationChart', [{x,y:ele,type:'scatter',mode:'lines',line:{color:'#5b3a96',width:2},text:hoverText,hovertemplate:'%{text}<extra></extra>'}], {margin:{l:44,r:10,t:8,b:34},xaxis:{title:'km'},yaxis:{title:'m'},showlegend:false}, {displayModeBar:false,responsive:true});
+    Plotly.newPlot('gradientChart', [{x,y:grad25,type:'scatter',mode:'lines',line:{color:'#d95f02',width:1.6},hovertemplate:'%{x:.2f} km<br>%{y:.1f}%<extra></extra>'}], {margin:{l:44,r:10,t:8,b:34},xaxis:{title:'km'},yaxis:{title:'25 m %',zeroline:true,range:[Math.min(-35,...finiteGrad),Math.max(30,...finiteGrad)]},showlegend:false}, {displayModeBar:false,responsive:true});
+    document.getElementById('elevationChart').on('plotly_hover', ev=>moveHoverByIndex(ev.points[0].pointIndex,false));
+    document.getElementById('gradientChart').on('plotly_hover', ev=>moveHoverByIndex(ev.points[0].pointIndex,false));
+    map.on('mousemove click', ev=>moveHoverByIndex(nearestProfile(profile, ev.latlng)));
+    map.on('touchmove', ev=>{ if(ev.latlng) moveHoverByIndex(nearestProfile(profile, ev.latlng)); });
+    updateInfo(profile[0],data.sections);
+  } else {
+    document.getElementById('elevationChart').innerHTML='<p class="warn">No elevation profile available.</p>';
+    document.getElementById('gradientChart').innerHTML='<p class="warn">No gradient profile available.</p>';
+  }
+  const o=data.overall||{};
+  document.getElementById('metrics').innerHTML = `<div class="metric"><span>Distance</span><b>${fmtKm(data.points.at(-1).distance_m)}</b></div><div class="metric"><span>Gain / loss</span><b>${fmtM(o.gain_m)} / ${fmtM(o.loss_m)}</b></div><div class="metric"><span>Altitude</span><b>${fmtM(o.min_ele_m)}–${fmtM(o.max_ele_m)}</b></div><div class="metric"><span>Steepest 25 m</span><b>+${fmtPct(o.max_gradient_25m_up_percent)} / ${fmtPct(o.max_gradient_25m_down_percent)}</b></div>`;
+  const rows=data.sections.map(s=>{ const color=SECTION_COLORS[s.type]||'#555'; return `<tr><td><span class="dot" style="background:${color}"></span>${esc(s.name)}<span class="startEnd">filled dot=start, ring=end</span></td><td>${esc(s.type)}</td><td>${fmtKm(s.distance_m)}</td><td>${fmtM(s.gain_m)}</td><td>${fmtM(s.loss_m)}</td><td>+${fmtPct(s.max_gradient_25m_up_percent)} / ${fmtPct(s.max_gradient_25m_down_percent)}</td><td class="hidePhone">+${fmtPct(s.max_gradient_50m_up_percent)} / ${fmtPct(s.max_gradient_50m_down_percent)}</td><td>${fmtM(s.distance_above_10_percent_m)}</td><td>${fmtM(s.distance_above_15_percent_m)}</td></tr>`; }).join('');
+  document.getElementById('summary').innerHTML = `<h2>Sections / endpoint legend</h2><div class="tableWrap"><table><tr><th>Section</th><th>Type</th><th>Distance</th><th>Gain</th><th>Loss</th><th>Max 25 m up/down</th><th class="hidePhone">Max 50 m</th><th>&gt;10%</th><th>&gt;15%</th></tr>${rows}</table></div>` + (data.warnings.length ? `<p class="warn"><b>Warnings:</b> ${data.warnings.map(esc).join('; ')}</p>` : '');
+}).catch(e=>{ document.body.insertAdjacentHTML('beforeend', `<pre class="warn">Viewer failed: ${esc(e&&e.message||e)}</pre>`); });
+</script></body></html>
